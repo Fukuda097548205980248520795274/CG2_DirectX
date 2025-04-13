@@ -78,3 +78,94 @@ ID3D12Device* GetDevice(IDXGIAdapter4* useAdapter, std::ostream& logStream)
 
 	return device;
 }
+
+/// <summary>
+/// commandQueueを生成し取得する
+/// </summary>
+/// <param name="device"></param>
+/// <returns></returns>
+ID3D12CommandQueue* GetCommandQueue(ID3D12Device* device)
+{
+	ID3D12CommandQueue* commandQueue = nullptr;
+	D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
+
+	HRESULT hr = device->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&commandQueue));
+	assert(SUCCEEDED(hr));
+
+	return commandQueue;
+}
+
+/// <summary>
+/// commandAllocatorを生成し取得する
+/// </summary>
+/// <param name="device"></param>
+/// <returns></returns>
+ID3D12CommandAllocator* GetCommandAllocator(ID3D12Device* device)
+{
+	ID3D12CommandAllocator* commandAllocator = nullptr;
+
+	HRESULT hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
+
+	assert(SUCCEEDED(hr));
+
+	return commandAllocator;
+}
+
+/// <summary>
+/// commandListを生成し取得する
+/// </summary>
+/// <param name="device"></param>
+/// <param name="commandAllocator"></param>
+/// <returns></returns>
+ID3D12GraphicsCommandList* GetCommandList(ID3D12Device* device, ID3D12CommandAllocator* commandAllocator)
+{
+	ID3D12GraphicsCommandList* commandList = nullptr;
+
+	HRESULT hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator, nullptr, IID_PPV_ARGS(&commandList));
+
+	assert(SUCCEEDED(hr));
+
+	return commandList;
+}
+
+/// <summary>
+/// swapChainを生成する
+/// </summary>
+/// <param name="width">幅</param>
+/// <param name="height">高さ</param>
+/// <param name="hwnd">ウィンドウハンドル</param>
+/// <param name="dxgiFactory"></param>
+/// <param name="commandQueue"></param>
+/// <returns></returns>
+IDXGISwapChain4* GetSwapChain(int32_t width, int32_t height,HWND hwnd, IDXGIFactory7* dxgiFactory, ID3D12CommandQueue* commandQueue)
+{
+	IDXGISwapChain4* swapChain = nullptr;
+	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
+
+	// 画面の大きさ
+	swapChainDesc.Width = width;
+	swapChainDesc.Height = height;
+
+	// 色の形式
+	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+	// マルチサンプルしない
+	swapChainDesc.SampleDesc.Count = 1;
+
+	// 描画のターゲットとして利用する
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+
+	// ダブルバッファ
+	swapChainDesc.BufferCount = 2;
+
+	// モニタに移したら中身を破棄する
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
+
+	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
+	HRESULT hr = dxgiFactory->CreateSwapChainForHwnd(commandQueue, hwnd, &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(&swapChain));
+
+	assert(SUCCEEDED(hr));
+
+	return swapChain;
+}
