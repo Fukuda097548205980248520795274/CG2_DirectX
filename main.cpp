@@ -8,6 +8,7 @@
 #include "./Func/Window/Window.h"
 #include "./Func/Get/Get.h"
 #include "./Func/Debug/Debug.h"
+#include "./Func/Barrier/Barrier.h"
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
@@ -225,6 +226,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	device->CreateRenderTargetView(swapChainResources[1], &rtvDesc, rtvHandles[1]);
 
 
+	/*---------------------------
+	    FenceとEventを生成する
+	---------------------------*/
+
+	// 初期値0でFenceを作る
+	ID3D12Fence* fence = nullptr;
+	uint64_t fenceValue = 0;
+	hr = device->CreateFence(fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+	assert(SUCCEEDED(hr));
+
+	// FenceのSignalを待つためのイベントを作成する
+	HANDLE fenceEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	assert(fenceEvent != nullptr);
+
+
 
 	/*-----------------
 	    メインループ
@@ -249,12 +265,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			//  BackBufferを選ぶ（インデックスで見つける）
 			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
 
+			// BackBufferを 表示 -> 描画 に変更する
+			TransitionBarrier(swapChainResources[backBufferIndex], commandList, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
 			// 描画先（BackBuffer）のRTVを設定する
 			commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, nullptr);
 
 			// 指定した色で画面全体をクリアする
 			float clearColor[] = { 0.1f , 0.25f , 0.5f , 1.0f };
 			commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
+
+			// BackBufferを 描画 -> 表示 に変更する
+			TransitionBarrier(swapChainResources[backBufferIndex], commandList, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
 			// commandListの内容を確定させる　全てのコマンドを積んでからCloseする
 			hr = commandList->Close();
@@ -268,6 +290,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 			// GPUとOSに画面の交換を行うよう通知する
 			swapChain->Present(1, 0);
+
+			// Fenceの値を更新
+			fenceValue++;
+
+			// GPUがここまでたどり着いたときに、Fenceの値を指定した値に代入するようにSignalを送る
+			commandQueue->Signal(fence, fenceValue);
+
+			// Fenceの値が指定したSignal値にたどり着いているかを確認する
+			if (fence->GetCompletedValue() < fenceValue)
+			{
+				// 指定したSignal値にたどり着いていないので、たどり着くまで待つようにEventを設定する
+				fence->SetEventOnCompletion(fenceValue, fenceEvent);
+
+				// イベントを待つ
+				WaitForSingleObject(fenceEvent, INFINITE);
+			}
 
 			// 次のフレーム用のcommandListを準備
 			hr = commandAllocator->Reset();
