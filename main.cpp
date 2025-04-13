@@ -316,5 +316,29 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 
+	/*-------------
+	    解放処理
+	--------------*/
+
+	CloseHandle(fenceEvent);
+	fence->Release();
+	rtvDescriptorHeap->Release();
+	swapChainResources[0]->Release();
+	swapChainResources[1]->Release();
+	swapChain->Release();
+	commandList->Release();
+	commandAllocator->Release();
+	commandQueue->Release();
+	device->Release();
+	useAdapter->Release();
+	dxgiFactory->Release();
+	debugController->Release();
+	CloseWindow(hwnd);
+
+
+	// リソースリークチェック
+	ResourceLeakCheck();
+
+
 	return 0;
 }
