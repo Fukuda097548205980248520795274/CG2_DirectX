@@ -13,36 +13,94 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Func">
+      <UniqueIdentifier>{86e26438-17a3-4e19-a1bd-41653836f5ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Func\Vector">
+      <UniqueIdentifier>{830fe9fa-55d8-4918-90cd-4a429ad09ed8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Func\Debug">
+      <UniqueIdentifier>{435d9e8b-ce64-4a1d-b2cc-3f443c51acfa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Func\Get">
+      <UniqueIdentifier>{11c8150e-9ff4-4711-a8df-63dfc64cd618}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Func\Matrix">
+      <UniqueIdentifier>{697917b1-e1d2-41f4-865c-91d3b883924f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Func\Barrier">
+      <UniqueIdentifier>{04353906-f0c4-4d56-adfa-241658c46ae1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Func\String">
+      <UniqueIdentifier>{e7acbcdb-523e-43fb-b0af-2685efadcb7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Func\Window">
+      <UniqueIdentifier>{b7824889-626b-4298-b767-108c38fb3d4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Func\Shader">
+      <UniqueIdentifier>{04b8c4d3-83a9-4d19-b46c-f5eeb23c469e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Func\Matrix\Matrix.cpp">
+      <Filter>Func\Matrix</Filter>
+    </ClCompile>
     <ClCompile Include="Func\Get\Get.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>Func\Get</Filter>
     </ClCompile>
-    <ClCompile Include="Func\String\String.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Func\Vector\Vector.cpp">
+      <Filter>Func\Vector</Filter>
     </ClCompile>
-    <ClCompile Include="Func\Window\Window.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Func\Barrier\Barrier.cpp">
+      <Filter>Func\Barrier</Filter>
     </ClCompile>
     <ClCompile Include="Func\Debug\Debug.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>Func\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Func\Window\Window.cpp">
+      <Filter>Func\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Func\String\String.cpp">
+      <Filter>Func\String</Filter>
+    </ClCompile>
+    <ClCompile Include="Func\Shader\Shader.cpp">
+      <Filter>Func\Shader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Struct.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Func\Matrix\Matrix.h">
+      <Filter>Func\Matrix</Filter>
+    </ClInclude>
     <ClInclude Include="Func\Get\Get.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>Func\Get</Filter>
     </ClInclude>
-    <ClInclude Include="Func\String\String.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Func\Vector\Vector.h">
+      <Filter>Func\Vector</Filter>
     </ClInclude>
-    <ClInclude Include="Func\Window\Window.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Func\Barrier\Barrier.h">
+      <Filter>Func\Barrier</Filter>
     </ClInclude>
     <ClInclude Include="Func\Debug\Debug.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>Func\Debug</Filter>
     </ClInclude>
+    <ClInclude Include="Func\Window\Window.h">
+      <Filter>Func\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Func\String\String.h">
+      <Filter>Func\String</Filter>
+    </ClInclude>
+    <ClInclude Include="Func\Shader\Shader.h">
+      <Filter>Func\Shader</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Object3d.VS.hlsl" />
+    <FxCompile Include="Object3d.PS.hlsl" />
   </ItemGroup>
 </Project>
