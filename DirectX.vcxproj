@@ -83,12 +83,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Func\Debug\Debug.cpp" />
     <ClCompile Include="Func\Get\Get.cpp" />
     <ClCompile Include="Func\String\String.cpp" />
     <ClCompile Include="Func\Window\Window.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Func\Debug\Debug.h" />
     <ClInclude Include="Func\Get\Get.h" />
     <ClInclude Include="Func\String\String.h" />
     <ClInclude Include="Func\Window\Window.h" />
