@@ -6,11 +6,13 @@
 #include <fstream>
 #include <d3d12.h>
 #include <dxgi1_6.h>
+#include <dxcapi.h>
 #include "../../Func/Window/Window.h"
 #include "../../Func/String/String.h"
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
+#pragma comment(lib,"dxcompiler.lib")
 
 /// <summary>
 /// 使用するアダプタ（GPU）を取得する
@@ -66,3 +68,21 @@ IDXGISwapChain4* GetSwapChain(int32_t width, int32_t height, HWND hwnd, IDXGIFac
 /// </summary>
 /// <returns></returns>
 ID3D12Debug1* GetDebugController();
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="device"></param>
+/// <param name="rootSignature"></param>
+/// <param name="vertexShaderBlob"></param>
+/// <param name="pixelShaderblob"></param>
+/// <returns></returns>
+ID3D12PipelineState* GetPipelineState(ID3D12Device* device, ID3D12RootSignature* rootSignature, IDxcBlob* vertexShaderBlob, IDxcBlob* pixelShaderblob);
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="device"></param>
+/// <param name="sizeInBytes"></param>
+/// <returns></returns>
+ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes);
