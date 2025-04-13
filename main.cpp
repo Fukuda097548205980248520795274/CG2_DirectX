@@ -144,6 +144,80 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	Log(logStream, "Complete create D3D12Device!!! \n");
 
 
+	/*------------------------------------
+	    CPUからCPUに命令群を送る機構を作る
+	------------------------------------*/
+
+	// commandQueueを生成する
+	ID3D12CommandQueue* commandQueue = GetCommandQueue(device);
+
+	// commandAllocatorを生成する
+	ID3D12CommandAllocator* commandAllocator = GetCommandAllocator(device);
+
+	// commandListを生成する
+	ID3D12GraphicsCommandList* commandList = GetCommandList(device, commandAllocator);
+
+
+	/*---------------
+	    画面を作る
+	---------------*/
+
+	// swapChainを生成する
+	IDXGISwapChain4* swapChain = GetSwapChain(kClientWidth, kClientHeight, hwnd, dxgiFactory, commandQueue);
+
+
+	/*-----------------------------
+	    DescriptorHeapを生成する
+	-----------------------------*/
+
+	ID3D12DescriptorHeap* rtvDescriptorHeap = nullptr;
+	D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDeac{};
+
+	// レンダーターゲットビュー用
+	rtvDescriptorHeapDeac.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+
+	// ダブルバッファように2つ
+	rtvDescriptorHeapDeac.NumDescriptors = 2;
+
+	hr = device->CreateDescriptorHeap(&rtvDescriptorHeapDeac, IID_PPV_ARGS(&rtvDescriptorHeap));
+	assert(SUCCEEDED(hr));
+
+	// SwapChainからResourceを引っ張ってくる
+	ID3D12Resource* swapChainResources[2] = { nullptr };
+
+	hr = swapChain->GetBuffer(0 , IID_PPV_ARGS(&swapChainResources[0]));
+	assert(SUCCEEDED(hr));
+
+	hr = swapChain->GetBuffer(1, IID_PPV_ARGS(&swapChainResources[1]));
+	assert(SUCCEEDED(hr));
+
+
+	/*--------------
+	    RTVを作る
+	--------------*/
+
+	// RTVの設定
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+
+	// 出力結果はSRGBに変換して書き込む
+	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+
+	// 2dテクスチャとして読み込む
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+
+	// ディスクリプタの先頭を取得する
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle = rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	
+	// RTVを2つ作るのでDescriptorを2つ用意
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[2];
+
+	rtvHandles[0] = rtvStartHandle;
+	device->CreateRenderTargetView(swapChainResources[0], &rtvDesc, rtvHandles[0]);
+
+	rtvHandles[1].ptr = rtvHandles[0].ptr + device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	device->CreateRenderTargetView(swapChainResources[1], &rtvDesc, rtvHandles[1]);
+
+
 
 	/*-----------------
 	    メインループ
@@ -165,7 +239,34 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			// ゲーム処理
 
 
+			//  BackBufferを選ぶ（インデックスで見つける）
+			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
 
+			// 描画先（BackBuffer）のRTVを設定する
+			commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, nullptr);
+
+			// 指定した色で画面全体をクリアする
+			float clearColor[] = { 0.1f , 0.25f , 0.5f , 1.0f };
+			commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
+
+			// commandListの内容を確定させる　全てのコマンドを積んでからCloseする
+			hr = commandList->Close();
+			assert(SUCCEEDED(hr));
+
+
+
+			// GPUにcommandListの実行を行わせる
+			ID3D12CommandList* commandLists[] = { commandList };
+			commandQueue->ExecuteCommandLists(1, commandLists);
+
+			// GPUとOSに画面の交換を行うよう通知する
+			swapChain->Present(1, 0);
+
+			// 次のフレーム用のcommandListを準備
+			hr = commandAllocator->Reset();
+			assert(SUCCEEDED(hr));
+			hr = commandList->Reset(commandAllocator, nullptr);
+			assert(SUCCEEDED(hr));
 		}
 	}
 
