@@ -60,3 +60,9 @@ ID3D12GraphicsCommandList* GetCommandList(ID3D12Device* device, ID3D12CommandAll
 /// <param name="commandQueue"></param>
 /// <returns></returns>
 IDXGISwapChain4* GetSwapChain(int32_t width, int32_t height, HWND hwnd, IDXGIFactory7* dxgiFactory, ID3D12CommandQueue* commandQueue);
+
+/// <summary>
+/// debugContorllerを取得する
+/// </summary>
+/// <returns></returns>
+ID3D12Debug1* GetDebugController();

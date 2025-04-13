@@ -7,6 +7,7 @@
 #include <dxgi1_6.h>
 #include "./Func/Window/Window.h"
 #include "./Func/Get/Get.h"
+#include "./Func/Debug/Debug.h"
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
@@ -123,6 +124,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	// ウィンドウを表示する
 	ShowWindow(hwnd, SW_SHOW);
 
+	
+	// debugLayerを有効化する
+	ID3D12Debug1* debugController = GetDebugController();
 
 
 	/*-----------------------
@@ -142,6 +146,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	// 初期化完了!!
 	Log(logStream, "Complete create D3D12Device!!! \n");
+
+	// エラー・警告は止まるようにする
+	StopErrorAndWarning(device);
 
 
 	/*------------------------------------

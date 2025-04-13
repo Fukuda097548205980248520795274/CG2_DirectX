@@ -169,3 +169,23 @@ IDXGISwapChain4* GetSwapChain(int32_t width, int32_t height,HWND hwnd, IDXGIFact
 
 	return swapChain;
 }
+
+/// <summary>
+/// debugContorllerを取得する
+/// </summary>
+/// <returns></returns>
+ID3D12Debug1* GetDebugController()
+{
+	ID3D12Debug1* debugController = nullptr;
+
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+	{
+		// デバッグレイヤーを有効化する
+		debugController->EnableDebugLayer();
+
+		// さらにGPU側でもチェックを行うようにする
+		debugController->SetEnableGPUBasedValidation(TRUE);
+	}
+
+	return debugController;
+}
