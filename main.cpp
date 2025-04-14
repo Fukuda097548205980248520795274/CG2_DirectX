@@ -8,9 +8,9 @@
 #include <dxgi1_6.h>
 #include <dxcapi.h>
 #include "Struct.h"
+#include "./Func/ErrorStop/ErrorStop.h"
 #include "./Func/Window/Window.h"
 #include "./Func/Get/Get.h"
-#include "./Func/Debug/Debug.h"
 #include "./Func/Barrier/Barrier.h"
 #include "./Func/Shader/Shader.h"
 #include "./Func/Matrix/Matrix.h"
@@ -154,8 +154,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	// 初期化完了!!
 	Log(logStream, "Complete create D3D12Device!!! \n");
 
-	// エラー・警告は止まるようにする
-	StopErrorAndWarning(device);
+	// エラー、警告が出たら停止する
+	ErrorWarningStop(device);
 
 
 	/*------------------------------------
@@ -265,11 +265,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 
-	/*-------------------
-	    PSOを生成する
-	-------------------*/
-
-	/*   rootSignature   */
+	/*----------------------------
+	    rootSignatureを生成する
+	----------------------------*/
 
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature{};
 	descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -307,7 +305,50 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	assert(SUCCEEDED(hr));
 
 
-	/*   shaderをcompileする   */
+	/*----------------------------
+		inputLayoutの設定を行う
+	----------------------------*/
+
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs[1] = {};
+
+	// float4 POSITION 0
+	inputElementDescs[0].SemanticName = "POSITION";
+	inputElementDescs[0].SemanticIndex = 0;
+	inputElementDescs[0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	inputElementDescs[0].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+
+
+	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc{};
+	inputLayoutDesc.pInputElementDescs = inputElementDescs;
+	inputLayoutDesc.NumElements = _countof(inputElementDescs);
+
+
+	/*---------------------------
+		BlendStateの設定を行う
+	---------------------------*/
+
+	D3D12_BLEND_DESC blendDesc{};
+
+	// 全ての色要素を書き込む
+	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+
+
+	/*--------------------------------
+		RasterizerStateの設定を行う
+	--------------------------------*/
+
+	D3D12_RASTERIZER_DESC rasterizerDesc{};
+
+	// 裏面（時計回りを表示しない）
+	rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
+
+	// 三角形の内部を塗りつぶす
+	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
+
+
+	/*---------------------------
+	    Shaderをコンパイルする
+	---------------------------*/
 
 	// VertexShader
 	IDxcBlob* vertexShaderBlob = CompileShader(L"Object3d.VS.hlsl", L"vs_6_0", dxcUtils, dxcCompiler, includeHandler, logStream);
@@ -319,8 +360,33 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 
-	// PSOを生成する
-	ID3D12PipelineState* graphicsPipelineState = GetPipelineState(device, rootSignature, vertexShaderBlob, pixelShaderBlob);
+	/*------------------
+		PSOを生成する
+	------------------*/
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDesc{};
+	graphicsPipelineStateDesc.pRootSignature = rootSignature;
+	graphicsPipelineStateDesc.InputLayout = inputLayoutDesc;
+	graphicsPipelineStateDesc.VS = { vertexShaderBlob->GetBufferPointer() , vertexShaderBlob->GetBufferSize() };
+	graphicsPipelineStateDesc.PS = { pixelShaderBlob->GetBufferPointer() , pixelShaderBlob->GetBufferSize() };
+	graphicsPipelineStateDesc.BlendState = blendDesc;
+	graphicsPipelineStateDesc.RasterizerState = rasterizerDesc;
+
+	// 書き込むRTVの情報
+	graphicsPipelineStateDesc.NumRenderTargets = 1;
+	graphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+
+	// 利用するトポロジ（形状）のタイプ
+	graphicsPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+	// どのように画面に色を打ち込むかの設定
+	graphicsPipelineStateDesc.SampleDesc.Count = 1;
+	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+
+	// 実際に生成
+	ID3D12PipelineState* graphicsPipelineState = nullptr;
+	hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&graphicsPipelineState));
+	assert(SUCCEEDED(hr));
 
 
 	/*------------------------
@@ -568,9 +634,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	CloseWindow(hwnd);
 
 
-	// リソースリークチェック
-	ResourceLeakCheck();
-
+	// リソースリークチェッカー
+	ResourceLeakChecker();
 
 	return 0;
 }
