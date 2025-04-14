@@ -19,9 +19,6 @@
     <Filter Include="Func\Vector">
       <UniqueIdentifier>{830fe9fa-55d8-4918-90cd-4a429ad09ed8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Func\Debug">
-      <UniqueIdentifier>{435d9e8b-ce64-4a1d-b2cc-3f443c51acfa}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Func\Get">
       <UniqueIdentifier>{11c8150e-9ff4-4711-a8df-63dfc64cd618}</UniqueIdentifier>
     </Filter>
@@ -40,6 +37,9 @@
     <Filter Include="Func\Shader">
       <UniqueIdentifier>{04b8c4d3-83a9-4d19-b46c-f5eeb23c469e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Func\Debug">
+      <UniqueIdentifier>{b28e820a-8ec8-479c-bed5-fcd5cdab5af2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -56,9 +56,6 @@
     </ClCompile>
     <ClCompile Include="Func\Barrier\Barrier.cpp">
       <Filter>Func\Barrier</Filter>
-    </ClCompile>
-    <ClCompile Include="Func\Debug\Debug.cpp">
-      <Filter>Func\Debug</Filter>
     </ClCompile>
     <ClCompile Include="Func\Window\Window.cpp">
       <Filter>Func\Window</Filter>
@@ -85,9 +82,6 @@
     </ClInclude>
     <ClInclude Include="Func\Barrier\Barrier.h">
       <Filter>Func\Barrier</Filter>
-    </ClInclude>
-    <ClInclude Include="Func\Debug\Debug.h">
-      <Filter>Func\Debug</Filter>
     </ClInclude>
     <ClInclude Include="Func\Window\Window.h">
       <Filter>Func\Window</Filter>
