@@ -513,8 +513,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
 			vertexBufferView.SizeInBytes = sizeof(Vector4) * 3;
 			vertexBufferView.StrideInBytes = sizeof(Vector4);
-			Vector4* vertexData = nullptr;
 
+			Vector4* vertexData = nullptr;
 			vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
 			vertexData[0] = { -0.5f , -0.5f , 0.0f , 1.0f };
 			vertexData[1] = { 0.0f , 0.5f , 0.0f , 1.0f };
