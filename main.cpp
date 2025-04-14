@@ -51,7 +51,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	std::ofstream logStream(logFilePath);
 
 
-
 	/*----------------------------
 	    ウィンドウクラスを登録する
 	----------------------------*/
