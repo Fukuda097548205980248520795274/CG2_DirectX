@@ -37,7 +37,7 @@
     <Filter Include="Func\Shader">
       <UniqueIdentifier>{04b8c4d3-83a9-4d19-b46c-f5eeb23c469e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Func\Debug">
+    <Filter Include="Func\ErrorStop">
       <UniqueIdentifier>{b28e820a-8ec8-479c-bed5-fcd5cdab5af2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -66,11 +66,11 @@
     <ClCompile Include="Func\Shader\Shader.cpp">
       <Filter>Func\Shader</Filter>
     </ClCompile>
+    <ClCompile Include="Func\ErrorStop\ErrorStop.cpp">
+      <Filter>Func\ErrorStop</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Struct.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Func\Matrix\Matrix.h">
       <Filter>Func\Matrix</Filter>
     </ClInclude>
@@ -91,6 +91,15 @@
     </ClInclude>
     <ClInclude Include="Func\Shader\Shader.h">
       <Filter>Func\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="Func\ErrorStop\ErrorStop.h">
+      <Filter>Func\ErrorStop</Filter>
+    </ClInclude>
+    <ClInclude Include="Struct.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Enum.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
