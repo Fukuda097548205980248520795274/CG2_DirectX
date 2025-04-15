@@ -11,9 +11,13 @@
 #include "./Func/ErrorStop/ErrorStop.h"
 #include "./Func/Window/Window.h"
 #include "./Func/Get/Get.h"
+#include "./Func/Create/Create.h"
 #include "./Func/Barrier/Barrier.h"
 #include "./Func/Shader/Shader.h"
 #include "./Func/Matrix/Matrix.h"
+#include "./externals/imgui/imgui.h"
+#include "./externals/imgui/imgui_impl_dx12.h"
+#include "./externals/imgui/imgui_impl_win32.h"
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
@@ -162,13 +166,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	------------------------------------*/
 
 	// commandQueueを生成する
-	ID3D12CommandQueue* commandQueue = GetCommandQueue(device);
+	ID3D12CommandQueue* commandQueue = CreateCommandQueue(device);
 
 	// commandAllocatorを生成する
-	ID3D12CommandAllocator* commandAllocator = GetCommandAllocator(device);
+	ID3D12CommandAllocator* commandAllocator = CreateCommandAllocator(device);
 
 	// commandListを生成する
-	ID3D12GraphicsCommandList* commandList = GetCommandList(device, commandAllocator);
+	ID3D12GraphicsCommandList* commandList = CreateCommandList(device, commandAllocator);
+
+
+	/*-----------------------------
+	    DescriptorHeapを生成する
+	-----------------------------*/
+
+	// RTV用のDescriptor
+	ID3D12DescriptorHeap* rtvDescriptorHeap = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, false);
+
+	// SRV用のDescriptor
+	ID3D12DescriptorHeap* srvDescriptorHeap = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 128, true);
 
 
 	/*---------------
@@ -176,24 +191,35 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	---------------*/
 
 	// swapChainを生成する
-	IDXGISwapChain4* swapChain = GetSwapChain(kClientWidth, kClientHeight, hwnd, dxgiFactory, commandQueue);
+	IDXGISwapChain4* swapChain = nullptr;
+	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
+
+	// 画面の大きさ
+	swapChainDesc.Width = kClientWidth;
+	swapChainDesc.Height = kClientHeight;
+
+	// 色の形式
+	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+	// マルチサンプルしない
+	swapChainDesc.SampleDesc.Count = 1;
+
+	// 描画のターゲットとして利用する
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+
+	// ダブルバッファ
+	swapChainDesc.BufferCount = 2;
+
+	// モニタに移したら中身を破棄する
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
 
-	/*-----------------------------
-	    DescriptorHeapを生成する
-	-----------------------------*/
+	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
+	hr = dxgiFactory->CreateSwapChainForHwnd(commandQueue, hwnd, &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(&swapChain));
 
-	ID3D12DescriptorHeap* rtvDescriptorHeap = nullptr;
-	D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDeac{};
-
-	// レンダーターゲットビュー用
-	rtvDescriptorHeapDeac.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-
-	// ダブルバッファように2つ
-	rtvDescriptorHeapDeac.NumDescriptors = 2;
-
-	hr = device->CreateDescriptorHeap(&rtvDescriptorHeapDeac, IID_PPV_ARGS(&rtvDescriptorHeap));
 	assert(SUCCEEDED(hr));
+
+
 
 	// SwapChainからResourceを引っ張ってくる
 	ID3D12Resource* swapChainResources[2] = { nullptr };
@@ -203,6 +229,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	hr = swapChain->GetBuffer(1, IID_PPV_ARGS(&swapChainResources[1]));
 	assert(SUCCEEDED(hr));
+
 
 
 	/*--------------
@@ -409,6 +436,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	scissorRect.bottom = kClientHeight;
 
 
+	/*-------------------
+	    ImGuiの初期化
+	-------------------*/
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui::StyleColorsDark();
+	ImGui_ImplWin32_Init(hwnd);
+	ImGui_ImplDX12_Init
+	(device, swapChainDesc.BufferCount, rtvDesc.Format,
+		srvDescriptorHeap, srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
+
 
 	/*----------------
 	    変数を作る
@@ -447,6 +487,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			// ゲーム処理
 
+			ImGui_ImplDX12_NewFrame();
+			ImGui_ImplWin32_NewFrame();
+			ImGui::NewFrame();
+
+			// ImGuiのデモ用UIを描画する
+			ImGui::ShowDemoWindow();
+
 
 			//  BackBufferを選ぶ（インデックスで見つける）
 			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
@@ -461,6 +508,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			float clearColor[] = { 0.1f , 0.25f , 0.5f , 1.0f };
 			commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
 
+			// 描画用のDescriptorの設定
+			ID3D12DescriptorHeap* descriptorHeap[] = { srvDescriptorHeap };
+			commandList->SetDescriptorHeaps(1, descriptorHeap);
 
 			///
 			/// ↓ 更新処理ここから
@@ -487,6 +537,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			/// ↑ 更新処理ここまで
 			/// 
 			
+			ImGui::Render();
+
 			///
 			/// ↓ 描画処理ここから
 			/// 
@@ -552,10 +604,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			commandList->DrawInstanced(3, 1, 0, 0);
 
 
+
+			// 実際のcommandListのImGui描画コマンドを積む
+			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+
 			///
 			/// ↑ 描画処理ここまで
 			/// 
-
 
 			// BackBufferを 描画 -> 表示 に変更する
 			TransitionBarrier(swapChainResources[backBufferIndex], commandList, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
@@ -603,6 +658,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 	}
 
+	ImGui_ImplDX12_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+
 
 	/*-------------
 	    解放処理
@@ -619,9 +678,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	vertexShaderBlob->Release();
 	CloseHandle(fenceEvent);
 	fence->Release();
-	rtvDescriptorHeap->Release();
 	swapChainResources[0]->Release();
 	swapChainResources[1]->Release();
+	srvDescriptorHeap->Release();
+	rtvDescriptorHeap->Release();
 	swapChain->Release();
 	commandList->Release();
 	commandAllocator->Release();
